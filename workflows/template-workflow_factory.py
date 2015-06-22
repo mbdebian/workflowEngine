@@ -41,6 +41,7 @@ else:
 	import configManager
 	from exceptions import WorkflowRunnerException
 	from workflows.workflowRunner import WorkflowRunner
+	from workflows.workflowRunner import WfConfManager
 	from workflows.Synchronization import *
 	_init()
 # END of Entry point ################################################################################################
@@ -73,46 +74,9 @@ synchronized('createWorkflowRunner')
 # END of Abstract Factory Interface #################################################################################
 
 # Support the Abstract Factory Product ##############################################################################
-class WfConfManager():
-	""" This class handles the Workflow configuration for a WorkflowEngine """
+class ConfManager(WfConfManager):
 	def __init__(self, configFileName, director):
-		self.__director = director
-		self.__configFilePath = os.path.join(configManager.getManager().getConfigFolder(), configFileName)
-		try:
-			with open(self.__configFilePath) as cf:
-				self.__config = json.load(cf)
-		except Exception as e:
-			msg = "Config file " + self.__configFilePath + " could not be read, because " + str(e)
-			self.__director.getReporter().error(msg)
-			raise WorkflowRunnerException(msg)
-
-	def getWorkflowId(self):
-		if "workflowId" not in self.__config:
-			msg = "Missing workflow ID from config file " + self.__configFilePath
-			self.__director.getReporter().error(msg)
-			raise WorkflowRunnerException(msg)
-		else:
-			return self.__config['workflowId']
-
-	def getConfigFilePath(self):
-		return self.__configFilePath
-
-	def getProvides(self):
-		if "provides" in self.__config:
-			return self.__config['provides']
-		else:
-			msg = "Missing information about what the workflow provides at config file " + self.__configFilePath
-			self.__director.getReporter().error(msg)
-			raise WorkflowRunnerException(msg)
-
-	def getRequires(self):
-		if "requires" in self.__config:
-			return self.__config['requires']
-		else:
-			msg = "Missing information about what the workflow requires at config file " \
-				+ self.__configFilePath
-			self.__director.getReporter().error(msg)
-			raise WorkflowRunnerException(msg)
+		WfConfManager.__init__(self, configFileName, director)
 # END of Support the Abstract Factory Product #######################################################################
 
 
