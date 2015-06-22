@@ -21,9 +21,10 @@
 # Application modules
 import os
 import json
-import configManager
-from workflows.observer import *
 import threading
+import configManager
+from exceptions import *
+from workflows.observer import *
 
 
 # Base class for handling configuration
@@ -38,35 +39,30 @@ class WfConfManager():
 		except Exception as e:
 			msg = "Config file " + self._configFilePath + " could not be read, because " + str(e)
 			self._director.getReporter().error(msg)
-			raise WorkflowRunnerException(msg)
+			raise WfConfManagerException(msg)
+
+	def _getValueForKey(self, key):
+		if key in self._config:
+			return self._config[key]
+		else:
+			msg = "Could not find '" + key + "' in config file " + self._configFilePath
+			self._director.getLogger().error(msg)
+			raise WfConfManagerException(msg)		
 
 	def getWorkflowId(self):
-		if "workflowId" not in self._config:
-			msg = "Missing workflow ID from config file " + self._configFilePath
-			self._director.getReporter().error(msg)
-			raise WorkflowRunnerException(msg)
-		else:
-			return self._config['workflowId']
+		key = "workflowId"
+		return self._getValueForKey(key)
 
 	def getConfigFilePath(self):
 		return self._configFilePath
 
 	def getProvides(self):
-		if "provides" in self._config:
-			return self._config['provides']
-		else:
-			msg = "Missing information about what the workflow provides at config file " + self._configFilePath
-			self._director.getReporter().error(msg)
-			raise WorkflowRunnerException(msg)
+		key = "provides"
+		return self._getValueForKey(key)
 
 	def getRequires(self):
-		if "requires" in self._config:
-			return self._config['requires']
-		else:
-			msg = "Missing information about what the workflow requires at config file " \
-				+ self._configFilePath
-			self._director.getReporter().error(msg)
-			raise WorkflowRunnerException(msg)
+		key = "requires"
+		return self._getValueForKey(key)
 
 # Base class for runners
 class WorkflowRunner(Observable, Observer):

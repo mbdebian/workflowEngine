@@ -13,7 +13,13 @@ class AppException(Exception):
 		return repr(self.value)
 
 class ConfigException(AppException):
-	pass
+	def __init__(self, value):
+		super(self, value)
 
 class WorkflowRunnerException(AppException):
-	pass
+	def __init__(self, value):
+		super(self, value)
+
+class WfConfManagerException(AppException):
+	def __init__(self, value):
+		super(self, value)
