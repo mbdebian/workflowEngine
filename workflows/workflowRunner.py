@@ -19,10 +19,56 @@
 # workflows have to be able to subscribe and notify to each other upon termination of their task or subtasks
 
 # Application modules
+import os
+import json
+import configManager
 from workflows.observer import *
 import threading
 
-# Base class
+
+# Base class for handling configuration
+class WfConfManager():
+	""" This class handles the Workflow configuration for a WorkflowEngine """
+	def __init__(self, configFileName, director):
+		self._director = director
+		self._configFilePath = os.path.join(configManager.getManager().getConfigFolder(), configFileName)
+		try:
+			with open(self._configFilePath) as cf:
+				self._config = json.load(cf)
+		except Exception as e:
+			msg = "Config file " + self._configFilePath + " could not be read, because " + str(e)
+			self._director.getReporter().error(msg)
+			raise WorkflowRunnerException(msg)
+
+	def getWorkflowId(self):
+		if "workflowId" not in self._config:
+			msg = "Missing workflow ID from config file " + self._configFilePath
+			self._director.getReporter().error(msg)
+			raise WorkflowRunnerException(msg)
+		else:
+			return self._config['workflowId']
+
+	def getConfigFilePath(self):
+		return self._configFilePath
+
+	def getProvides(self):
+		if "provides" in self._config:
+			return self._config['provides']
+		else:
+			msg = "Missing information about what the workflow provides at config file " + self._configFilePath
+			self._director.getReporter().error(msg)
+			raise WorkflowRunnerException(msg)
+
+	def getRequires(self):
+		if "requires" in self._config:
+			return self._config['requires']
+		else:
+			msg = "Missing information about what the workflow requires at config file " \
+				+ self._configFilePath
+			self._director.getReporter().error(msg)
+			raise WorkflowRunnerException(msg)
+
+# Base class for runners
 class WorkflowRunner(Observable, Observer):
 	"""docstring for WorkflowRunner"""
 	def __init__(self):
