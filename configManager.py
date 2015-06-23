@@ -185,12 +185,12 @@ class ConfigurationManager:
 		instance = None
 		try:
 			instance = importlib.import_module(moduleName)
-		else:
-			self.__logger.debug("Instance created!")
 		except Exception as e:
 			msg = "Error instantiating module " + moduleName
 			self.__reporter.error(msg + " " + str(e))
 			raise ConfigException(msg)
+		else:
+			self.__logger.debug("Instance created!")
 		self.__logger.debug("Returning instance of factory " + moduleName)
 		return instance
 
