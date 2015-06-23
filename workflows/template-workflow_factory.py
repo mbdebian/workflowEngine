@@ -66,7 +66,7 @@ def createWorkflowRunner(configFileName):
 	calling client
 	"""
 	global _runnerIdCounter
-	runner = WorkflowEngine(configFileName, _runnerIdCounter)
+	runner = MyWorkflowRunner(configFileName, _runnerIdCounter)
 	_runnerIdCounter += 1
 	return runner
 # Make the factory thread safe

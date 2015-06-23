@@ -182,12 +182,17 @@ class ConfigurationManager:
 	def getWorkflowFactoryInstance(self, factoryName):
 		self.__logger.debug("Getting instance of Factory '" + factoryName + "'")
 		moduleName = _workflowsFolder + "." + factoryName
+		instance = None
 		try:
-			return importlib.import_module(moduleName)
+			instance = importlib.import_module(moduleName)
+		else:
+			self.__logger.debug("Instance created!")
 		except Exception as e:
 			msg = "Error instantiating module " + moduleName
 			self.__reporter.error(msg + " " + str(e))
 			raise ConfigException(msg)
+		self.__logger.debug("Returning instance of factory " + moduleName)
+		return instance
 
 	def getMainWorkflowInstance(self):
 		if "mainWorkflow" in self.__configObject:
