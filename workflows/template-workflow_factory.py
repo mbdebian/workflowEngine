@@ -85,7 +85,7 @@ class MyWorkflowRunner(WorkflowRunner):
 	""" This is a template for the user to create its own workflows
 	"""
 	def __init__(self, configFileName, runnerId = 0):
-		super(WorkflowEngine, self).__init__()
+		super(MyWorkflowRunner, self).__init__()
 		self.__runnerId = runnerId
 		self.__runnerIdName = __name__ + "-" + str(runnerId)
 		self.__logger = configManager.getManager().createLogger(self.__runnerIdName)
