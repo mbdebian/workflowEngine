@@ -161,7 +161,7 @@ class WorkflowEngine(WorkflowRunner):
 				operations[op]['runner'] = operations[op]['factory'].createWorkflowRunner(self.__config.getConfigFileForOperation(op))
 			except Exception as e:
 				msg = "An error occurred while trying to instantiate factories and runners for workflow " \
-					+ self.__config.getWorkflowId()
+					+ self.__config.getWorkflowId() + "\nERROR: " + str(e)
 				self.__reporter.error(msg)
 				raise WorkflowRunnerException(msg)
 		# Load workflow operation sequence
