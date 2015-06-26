@@ -32,7 +32,7 @@ class WfConfManager():
 	""" This class handles the Workflow configuration for a WorkflowEngine """
 	def __init__(self, configFileName, director):
 		self._director = director
-		self._configFilePath = os.path.join(configManager.getManager().getConfigFolder(), configFileName)
+		self._configFilePath = os.path.abspath(os.path.join(configManager.getManager().getConfigFolder(), configFileName))
 		try:
 			with open(self._configFilePath) as cf:
 				self._config = json.load(cf)
