@@ -157,8 +157,7 @@ class WorkflowEngine(WorkflowRunner):
 				operations[op] = {}
 				operations[op]['factory'] = \
 					configManager.getManager().getWorkflowFactoryInstance(self.__config.getFactoryNameForOperation(op))
-				print("Instantiating runner with config file " + self.__config.getConfigFileForOperation(op))
-				self.__logger("Instantiating runner with config file " + self.__config.getConfigFileForOperation(op))
+				self.__logger.debug("Instantiating runner with config file " + self.__config.getConfigFileForOperation(op))
 				operations[op]['runner'] = operations[op]['factory'].createWorkflowRunner(self.__config.getConfigFileForOperation(op))
 			except Exception as e:
 				msg = "An error occurred while trying to instantiate factories and runners for workflow " \

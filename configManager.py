@@ -44,7 +44,7 @@ def createConfigManager(configFileName):
 	if _configManager == None:
 		# Read the file
 		try:
-			configFilePath = os.path.join(_configFolder, configFileName)
+			configFilePath = os.path.abspath(os.path.join(_configFolder, configFileName))
 			with open(configFilePath) as cf:
 				# Load JSON formatted config
 				configObject = json.load(cf)
@@ -70,6 +70,8 @@ class ConfigurationManager:
 			self.__runFolder = _runFolder
 		else:
 			self.__runFolder = configObject['runFolder']
+		# Make the PATH absolute
+		self.__runFolder = os.path.abspath(self.__runFolder)
 		dirsToCheck.append(self.__runFolder)
 		# Check dirs
 		for folder in dirsToCheck:
@@ -87,14 +89,14 @@ class ConfigurationManager:
 		except Exception as e:
 			raise ConfigException("Error while trying to set up session ID, " + str(e))
 		# Create session working dir
-		self.__sessionWorkingDir = os.path.join(self.__runFolder, self.__sessionId)
+		self.__sessionWorkingDir = os.path.abspath(os.path.join(self.__runFolder, self.__sessionId))
 		try:
 			os.mkdir(self.__sessionWorkingDir)
 		except Exception as e:
 			raise ConfigException("ERROR while trying to create a working dir for session " \
 				+ self.__sessionId + ", " + str(e))
 		# Create session log folder
-		self.__sessionLogFolder = os.path.join(self.__sessionWorkingDir, 'logs')
+		self.__sessionLogFolder = os.path.abspath(os.path.join(self.__sessionWorkingDir, 'logs'))
 		try:
 			os.mkdir(self.__sessionLogFolder)
 		except Exception as e:
@@ -123,7 +125,7 @@ class ConfigurationManager:
 			self.__logger.addHandler(lhandler)
 		self.__logger.debug("Logging system initialized")
 		# Initialize reports
-		self.__sessionReportsFolder = os.path.join(self.__sessionWorkingDir, 'reports')
+		self.__sessionReportsFolder = os.path.abspath(os.path.join(self.__sessionWorkingDir, 'reports'))
 		try:
 			os.mkdir(self.__sessionReportsFolder)
 		except Exception as e:
