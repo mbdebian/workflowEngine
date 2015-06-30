@@ -1,66 +1,28 @@
 #!/usr/bin/env python3
 
 #####################################################################################################################
-#											TEMPLATE Workflow Runner												#
+#								TEMPLATE for creating a WorkflowRunner Factory										#
 #####################################################################################################################
 #																Author: Manuel Bernal Llinares <mbdebian@gmail.com>	#
 #####################################################################################################################
+""" This is a template that provides the scafolding for creating your own WorkflowRunner Factory
+"""
 
-# This is just a template for creating factories of WorkflowRunner
-# It is quite useful to not start from scratch implementing the factories of your concrete workflow runners
-# Maybe, I should have done this not only a template, but something like a Supermodule from which other modules
-# (workflow runner factories) could inherit (delegate in the case of modules), this way I could always keep the base
-# requirements of what you need to implement your own workflow runners, up to date by just updating this template
-# Although another way of using this template is by importing it into the namespace, and then subclassing the classes
-# defined on it, and redefining the methods of the module. Or importing the module via a reference and both subclass 
-# and delegate
-
-
-# Module init code ##################################################################################################
-def _init():
-	""" Initialization code for the module as part of the application """
-	global _initializedEngine
-	_initializedEngine = True
-# END of Module init code ###########################################################################################
-
-
-# Unit tests ########################################################################################################
-def unitTest():
-	""" Unit Test method to run tests on this module when running stand alone """
-	pass
-# END of Unit tests #################################################################################################
-
-# Entry point #######################################################################################################
-if __name__ == "__main__":
-	# Set up here the unit test
-	print("Preparing Unit Testing code...")
-	# Set up things that we would normally get from the Application wide ConfigManager
-	unitTest()
-else:
-	# We are running as part of the application
+# Running as part of the Workflow Engine ############################################################################
+if not __name__ == "__main__":
 	import configManager
 	from exceptions import WorkflowRunnerException
 	from workflows.workflowRunner import WorkflowRunner
 	from workflows.workflowRunner import WfConfManager
 	from workflows.Synchronization import *
-	_init()
-# END of Entry point ################################################################################################
-
-
-
+# END of running as part of the Workflow Engine #####################################################################
 
 # Modules from the system ###########################################################################################
-import os
-import json					# This template already has code to read a config file in JSON format
-import threading
-# END of Modules from the system ####################################################################################
 
+# END of Modules from the system ####################################################################################
 
 # Abstract Factory Interface ########################################################################################
 _runnerIdCounter = 0
-# TODO Remove the following module attribute
-_initializedEngine = False
-
 def createWorkflowRunner(configFileName):
 	""" It creates an instance of the Workflow runner implemented in this module, and it returns it back to the
 	calling client
@@ -73,10 +35,23 @@ def createWorkflowRunner(configFileName):
 synchronized('createWorkflowRunner')
 # END of Abstract Factory Interface #################################################################################
 
+class MyCustomException(Exception):
+	def __init__(self, value):
+		Exception.__init__(self)
+		self.value = value
+	def __str__(self):
+		return repr(self.value)
+
+
 # Support the Abstract Factory Product ##############################################################################
 class ConfManager(WfConfManager):
 	def __init__(self, configFileName, director):
 		WfConfManager.__init__(self, configFileName, director)
+
+	def getParticularProperty(self):
+		key = "propertyKey"
+		return self._getValueForKey(key)
+
 # END of Support the Abstract Factory Product #######################################################################
 
 
@@ -91,8 +66,9 @@ class MyWorkflowRunner(WorkflowRunner):
 		self.__logger = configManager.getManager().createLogger(self.__runnerIdName)
 		self.__reporter = configManager.getManager().createReporter(self.__runnerIdName + "_report")
 		self.__logger.debug("Trying to load config file " + configFileName)
-		self.__config = WfeConfManager(configFileName, self)
+		self.__config = ConfManager(configFileName, self)
 		self.__logger.debug("Workflow configuration file, " + self.__config.getConfigFilePath())
+		self.__logger.debug("Runner created")
 
 	def provides(self):
 		return self.__config.getProvides()
@@ -112,9 +88,32 @@ class MyWorkflowRunner(WorkflowRunner):
 	def getIdName(self):
 		return self.__runnerIdName
 
+
 	def _execute(self):
 		""" This method is where your workflow does its job """
-		pass
+		self.__reporter.info("Runner " + __name__ + " starting its execution")
+		try:
+			# TODO Place here the execution body of your runner
+		except Exception as e:
+			msg = "An error occurred while executing runner: " + __name__ + "\nERROR:\n" + str(e)
+			self.__reporter.error(msg)
+			raise MyCustomException(msg)
+		finally:
+			self.__reporter.info("END --- of execution of module " + __name__)
+
 # END of Abstract Factory Product ###################################################################################
+
+
+# Unit tests ########################################################################################################
+def unitTest():
+	""" Unit Test method to run tests on this module when running stand alone """
+	pass
+# END of Unit tests #################################################################################################
+
+# Unit testing environment detection and definition #################################################################
+if __name__ == "__main__":
+	import sys
+	sys.stderr.writelines("This module is not designed to be run alone, please, test it using the Workflow Engine")
+#####################################################################################################################
 
 # END OF SCRIPT #####################################################################################################
