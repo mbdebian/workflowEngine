@@ -73,6 +73,7 @@ class WorkflowRunner(Observable, Observer):
 		# Default behavior for waiting for observables
 		self.__waitingForReqs = set()
 		self.__readyToGo = threading.Condition()
+		self.__result = {'sucmsg': 'No Sucess message set', 'errmsg': 'No error message set', 'success': True, 'done': False}
 
 	def provides(self):
 		raise NotImplementedError("WorkflowRunner - method 'provides' must be implemented by subclasses")
@@ -91,6 +92,17 @@ class WorkflowRunner(Observable, Observer):
 
 	def getIdName(self):
 		raise NotImplementedError("WorkflowRunner - method 'getIdName' must be implemented by subclasses")
+
+	def getResult(self):
+		return self.__result
+
+	def setSuccess(self, msg):
+		self.__result['sucmsg'] = msg
+		self.__result['success'] = True
+
+	def setError(self, msg):
+		self.__result['errmsg'] = msg
+		self.__result['success'] = False
 
 	def observe(self, runner, requiredItem):
 		""" Implements the default behavior for observing observables """
@@ -127,6 +139,7 @@ class WorkflowRunner(Observable, Observer):
 		""" Default behavior for the runner """
 		self.getLogger().debug("Notifying observers that I'M DONE, runner " \
 			+ self.getIdName())
+		self.__result['done'] = True
 		self.setChanged()
 		self.notifyObservers(provisionKey)
 
