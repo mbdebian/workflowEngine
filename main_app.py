@@ -36,19 +36,25 @@ def main():
 	config = configManager.createConfigManager(args.configFileName, testmode)
 	# Mark the start of the session
 	config.getReporter().info("Session " + config.getSessionId() + " Started")
-	msg = "\nPaths:\n\tWorking dir: " + config.getWorkingDir() \
-	+ "\n\tReports folder: " + config.getReportsFolder() \
-	+ "\n\tLogs folder: " + config.getLogsFolder() \
-	+ "\n\tResources Folder: " + config.getResourcesFolder() \
-	+ "\n\tConfig folder: " + config.getConfigFolder()
-	config.getReporter().info(msg)
-	config.getLogger().debug(msg)
 
 	# The code after these lines could be encapsulated in a class that implements the business logic of the Engine,
 	# this way, we could have both command line and GUI interfaces.
 	try:
 		if args.testFactory:
+			msg = "\nPaths:\n\tWorking dir: " + config.getWorkingDir() \
+			+ "\n\tReports folder: " + config.getReportsFolder() \
+			+ "\n\tLogs folder: " + config.getLogsFolder() \
+			+ "\n\tResources Folder: " + config.getResourcesFolder() \
+			+ "\n\tConfig folder: " + config.getConfigFolder()
+			config.getReporter().info(msg)
+			config.getLogger().debug(msg)
 			config.getReporter().info("Test mode for factory: " + args.testFactory)
+			config.getLogger().debug("Getting instance of the factory to test")
+			wfactory = config.getWorkflowFactoryInstance(args.testFactory)
+			msg = "Calling unitTest() method to test factory: " + args.testFactory
+			config.getLogger().debug(msg)
+			config.getReporter().info(msg)
+			wfactory.unitTest()
 		else:
 			# Instantiate the main Workflow
 			try:

@@ -88,12 +88,12 @@ class MyWorkflowRunner(WorkflowRunner):
 	def getIdName(self):
 		return self.__runnerIdName
 
-
 	def _execute(self):
 		""" This method is where your workflow does its job """
 		self.__reporter.info("Runner " + __name__ + " starting its execution")
 		try:
 			# TODO Place here the execution body of your runner
+			pass
 		except Exception as e:
 			msg = "An error occurred while executing runner: " + __name__ + "\nERROR:\n" + str(e)
 			self.__reporter.error(msg)
@@ -107,6 +107,7 @@ class MyWorkflowRunner(WorkflowRunner):
 # Unit tests ########################################################################################################
 def unitTest():
 	""" Unit Test method to run tests on this module when running stand alone """
+	print("unitTest() unit test method called for '" + __name__ + "'")
 	pass
 # END of Unit tests #################################################################################################
 

@@ -24,7 +24,8 @@ from exceptions import ConfigException
 
 # Application defaults - NORMAL OPERATION MODE
 _configFolder = os.path.abspath('config')
-_workflowsFolder = os.path.abspath('workflows')
+_workflowsModulePrefix = 'workflows'
+_workflowsFolder = os.path.abspath(_workflowsModulePrefix)
 _runFolder = os.path.abspath('run')
 _resourcesFolder = os.path.abspath('resources')
 _ipcFolder = os.path.abspath('ipc')
@@ -49,7 +50,7 @@ _configManager = None
 def createConfigManager(configFileName, testmode=False):
 	global _configManager
 	global _configFolder
-	global _workflowsFolder
+	#global _workflowsFolder
 	global _runFolder
 	global _resourcesFolder
 	global _ipcFolder
@@ -57,7 +58,7 @@ def createConfigManager(configFileName, testmode=False):
 	if _configManager == None:
 		if testmode:
 			_configFolder = os.path.join(_testFolder, "config")
-			_workflowsFolder = os.path.join(_testFolder, "workflows")
+			#_workflowsFolder = os.path.join(_testFolder, "workflows")
 			_runFolder = os.path.join(_testFolder, "run")
 			_sessionWorkingDir = _runFolder
 			_resourcesFolder = os.path.join(_testFolder, "resources")
@@ -207,13 +208,13 @@ class ConfigurationManager:
 
 	def getWorkflowFactoryInstance(self, factoryName):
 		self.__logger.debug("Getting instance of Factory '" + factoryName + "'")
-		moduleName = _workflowsFolder + "." + factoryName
+		moduleName = _workflowsModulePrefix + "." + factoryName
 		instance = None
 		try:
 			instance = importlib.import_module(moduleName)
 		except Exception as e:
-			msg = "Error instantiating module " + moduleName
-			self.__reporter.error(msg + " " + str(e))
+			msg = "Error instantiating module " + moduleName + "\nERROR: " + str(e)
+			self.__reporter.error(msg)
 			raise ConfigException(msg)
 		else:
 			self.__logger.debug("Instance created!")
@@ -358,13 +359,14 @@ class TestConfigManager:
 
 	def getWorkflowFactoryInstance(self, factoryName):
 		self.__logger.debug("Getting instance of Factory '" + factoryName + "'")
-		moduleName = factoryName
+		moduleName = _workflowsModulePrefix + "." + factoryName
+		self.__logger.debug("Instantiating module: " + moduleName)
 		instance = None
 		try:
 			instance = importlib.import_module(moduleName)
 		except Exception as e:
-			msg = "Error instantiating module " + moduleName
-			self.__reporter.error(msg + " " + str(e))
+			msg = "Error instantiating module " + moduleName + "\nERROR: " + str(e)
+			self.__reporter.error(msg)
 			raise ConfigException(msg)
 		else:
 			self.__logger.debug("Instance created!")
