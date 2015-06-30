@@ -1,17 +1,14 @@
 #!/usr/bin/env python3
 
 #####################################################################################################################
-#										Application Wide Config Manager												#
+#								TEST - Application Wide Configuration Manager										#
 #####################################################################################################################
 #																Author: Manuel Bernal Llinares <mbdebian@gmail.com>	#
 #####################################################################################################################
 
-# This module implements a kind of a singleton for the application configuration
-# to be available application wide
-
-# TODO
-# 	- Make use of pseudo-private variables
-#	- Implement the part that handles the "resources" and "ipc" folders
+"""This module implements a version of the Application Config Manager of the Workflow Engine to be used for 
+unit testing your factories of runners
+"""
 
 # System modules
 import os
@@ -20,13 +17,16 @@ import json
 import logging
 import importlib
 # Package modules
-from exceptions import ConfigException
+from testExceptions import ConfigException
 
 # Application defaults
-_configFolder = 'config'
-_workflowsFolder = 'workflows'
-_runFolder = 'run'
-_resourcesFolder = 'resources'
+_testFolder = os.path.abspath(os.path.join("..", "test"))
+_configFolder = os.path.join(_testFolder, "config")
+_workflowsFolder = os.path.join(_testFolder, "workflows")
+_runFolder = os.path.join(_testFolder, "run")
+_sessionWorkingDir = _runFolder
+_resourcesFolder = os.path.join(_testFolder, "resources")
+_ipcFolder = os.path.join(_testFolder, "ipc")
 _loggerFormatters = {
 	'DEBUG': '%(asctime)s [%(levelname)s][%(name)s] [%(module)s, %(lineno)s] %(message)s',
 	'INFO': '%(asctime)s [%(levelname)s][%(name)s] %(message)s'
@@ -73,7 +73,13 @@ class ConfigurationManager:
 			self.__runFolder = configObject['runFolder']
 		# Make the PATH absolute
 		self.__runFolder = os.path.abspath(self.__runFolder)
+		self.__sessionWorkingDir = _sessionWorkingDir
+		self.__sessionLogFolder = os.path.abspath(os.path.join(self.__sessionWorkingDir, 'logs'))
+		self.__sessionReportsFolder = os.path.abspath(os.path.join(self.__sessionWorkingDir, 'reports'))
 		dirsToCheck.append(self.__runFolder)
+		dirsToCheck.append(self.__sessionWorkingDir)
+		dirsToCheck.append(self.__sessionLogFolder)
+		dirsToCheck.append(self.__sessionReportsFolder)
 		# Check dirs
 		for folder in dirsToCheck:
 			if not os.path.isdir(folder):
@@ -89,19 +95,6 @@ class ConfigurationManager:
 			self.__sessionId = time.strftime('%Y.%m.%d_%H.%M') + "-" + configObject['jobId']
 		except Exception as e:
 			raise ConfigException("Error while trying to set up session ID, " + str(e))
-		# Create session working dir
-		self.__sessionWorkingDir = os.path.abspath(os.path.join(self.__runFolder, self.__sessionId))
-		try:
-			os.mkdir(self.__sessionWorkingDir)
-		except Exception as e:
-			raise ConfigException("ERROR while trying to create a working dir for session " \
-				+ self.__sessionId + ", " + str(e))
-		# Create session log folder
-		self.__sessionLogFolder = os.path.abspath(os.path.join(self.__sessionWorkingDir, 'logs'))
-		try:
-			os.mkdir(self.__sessionLogFolder)
-		except Exception as e:
-			raise ConfigException("Could not create log folder " + self.__sessionLogFolder + ", error " + str(e))
 		# Load logger configuration
 		self.__logLevel = _logLevel
 		if "loglevel" in configObject['logger']:
@@ -124,13 +117,11 @@ class ConfigurationManager:
 			self.__logHandlers.append(lhandler)
 			# Add the handlers to my own logger
 			self.__logger.addHandler(lhandler)
+		consoleHandler = logging.StreamHandler()
+		consoleHandler.setLevel(logging.DEBUG)
+		consoleHandler.setFormatter(logging.Formatter(_loggerFormatters['DEBUG']))
+		self.__logger.addHandler(consoleHandler)
 		self.__logger.debug("Logging system initialized")
-		# Initialize reports
-		self.__sessionReportsFolder = os.path.abspath(os.path.join(self.__sessionWorkingDir, 'reports'))
-		try:
-			os.mkdir(self.__sessionReportsFolder)
-		except Exception as e:
-			raise ConfigException("Could not create reports folder " + self.__sessionReportsFolder + ", error " + str(e))
 		# TODO Check config file for formatting options
 		self.__reportFormatters = _reportFormatters
 		reportFileNormal = os.path.join(self.__sessionReportsFolder, configObject['jobId'] + '.report')
@@ -185,7 +176,7 @@ class ConfigurationManager:
 
 	def getWorkflowFactoryInstance(self, factoryName):
 		self.__logger.debug("Getting instance of Factory '" + factoryName + "'")
-		moduleName = _workflowsFolder + "." + factoryName
+		moduleName = factoryName
 		instance = None
 		try:
 			instance = importlib.import_module(moduleName)
@@ -197,17 +188,6 @@ class ConfigurationManager:
 			self.__logger.debug("Instance created!")
 		self.__logger.debug("Returning instance of factory " + moduleName)
 		return instance
-
-	def getMainWorkflowInstance(self):
-		if "mainWorkflow" in self.__configObject:
-			# Get Factory instance
-			wfFactory = self.getWorkflowFactoryInstance(self.__configObject['mainWorkflow']['factory'])
-			if "config" in self.__configObject['mainWorkflow']:
-				return wfFactory.createWorkflowRunner(self.__configObject['mainWorkflow']['config'])
-			else:
-				msg = "There is no config file for the main workflow"
-				self.__reporter.error(msg)
-				raise ConfigException(msg)
 
 	def getWorkingDir(self):
 		return self.__sessionWorkingDir
@@ -221,3 +201,28 @@ class ConfigurationManager:
 	def getResourcesFolder(self):
 		return self.__resourcesFolder
 
+	def getLogger(self):
+		return self.__logger
+
+
+def main():
+	scriptName = os.path.basename(__file__)
+	configFileName = "testConfigManager-unit_test.conf"
+	msg = "--- " * 4 + "Unit test: " + scriptName + " " + "--- " * 4
+	config = createConfigManager(configFileName)
+	config = getManager()
+	logger = config.getLogger()
+	logger.debug(msg)
+	reporter = config.getReporter()
+	reporter.info(msg)
+	msg = "\nReport on paths:\n\tWorking dir: " + config.getWorkingDir() \
+		+ "\n\tReports folder: " + config.getReportsFolder() \
+		+ "\n\tLogs folder: " + config.getLogsFolder() \
+		+ "\n\tResources Folder: " + config.getResourcesFolder() \
+		+ "\n\tConfig folder: " + config.getConfigFolder()
+	logger.debug(msg)
+	reporter.info(msg)
+	reporter.info("-"*9 + "END of unit test for " + scriptName)
+
+if __name__ == "__main__":
+	main()

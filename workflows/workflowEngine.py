@@ -210,6 +210,7 @@ class WorkflowEngine(WorkflowRunner):
 			runners.append(thread)
 		self.__logger.debug("Waiting for operations to finish")
 		for runner in runners:
+			# TODO - Use non-blocking wait for the threads, in case any of them fails, and recover result object
 			runner.join()
 		self.__logger.debug("All runners have finished")
 		self.__reporter.info("End of workflow execution " + self.__config.getWorkflowId())
