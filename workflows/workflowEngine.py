@@ -201,6 +201,7 @@ class WorkflowEngine(WorkflowRunner):
 				# Add the reference of the runner
 				provisions[provisionKey].append(operations[op]['runner'])
 		# Run workflows in parallel
+		# TODO - Change this to poll threads in case a deadlock occurs, so we can kill other threads
 		runners = []
 		for op in wfSequence:
 			self.__logger.debug("Launching thread for operation '" + op + "' being run by runner " \
