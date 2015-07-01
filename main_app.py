@@ -7,6 +7,7 @@
 #####################################################################################################################
 
 # Import modules from system
+import sys
 import logging
 import argparse
 # Import modules from package
@@ -39,6 +40,7 @@ def main():
 
 	# The code after these lines could be encapsulated in a class that implements the business logic of the Engine,
 	# this way, we could have both command line and GUI interfaces.
+	error = False
 	try:
 		if args.testFactory:
 			msg = "\nPaths:\n\tWorking dir: " + config.getWorkingDir() \
@@ -61,15 +63,24 @@ def main():
 				mainWorkflow = config.getMainWorkflowInstance()
 				mainWorkflow.execute()
 			except Exception as e:
-				config.getReporter().error("Failed to execute the workflow, " + str(e))
-				# Remove this line when production
-				print(str(e))
+				config.getReporter().error("An exception occurred while running session '" \
+					+ config.getSessionId() + "', ERROR message: " + str(e))
+				error = True
+			else:
+				if mainWorkflow.isResultSuccess():
+					config.getReporter().info("Successful session: '" + config.getSessionId() + "'")
+				else:
+					config.getReporter().error("Error running session '" + config.getSessionId() + "', ERROR: " \
+						+ mainWorkflow.getResultMessage())
+					error = True
 	except Exception as e:
 		config.getReporter().error("ERROR!!! " + str(e))
 		print(str(e))
 	finally:
 		config.getReporter().info("END of session " + config.getSessionId())
 		logging.shutdown()
+		if error:
+			sys.exit(1)
 
 
 if __name__ == "__main__":

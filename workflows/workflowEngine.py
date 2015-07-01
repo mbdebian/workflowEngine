@@ -148,73 +148,106 @@ class WorkflowEngine(WorkflowRunner):
 		return self.__runnerIdName
 
 	def _execute(self):
-		self.__logger.debug("Executing workflow -- " + self.__config.getWorkflowId() + " --")
+		self.__reporter.info("BEGIN --- workflow ID '" + self.__config.getWorkflowId() + "'")
 		# Load runners for the operations
-		operations = {}
-		for op in self.__config.getOperations():
-			try:
-				self.__logger.debug("Processing Factory for operation '" + op + "'")
-				operations[op] = {}
-				operations[op]['factory'] = \
-					configManager.getManager().getWorkflowFactoryInstance(self.__config.getFactoryNameForOperation(op))
-				self.__logger.debug("Instantiating runner with config file " + self.__config.getConfigFileForOperation(op))
-				operations[op]['runner'] = operations[op]['factory'].createWorkflowRunner(self.__config.getConfigFileForOperation(op))
-			except Exception as e:
-				msg = "An error occurred while trying to instantiate factories and runners for workflow " \
-					+ self.__config.getWorkflowId() + "\nERROR: " + str(e)
-				self.__reporter.error(msg)
-				raise WorkflowRunnerException(msg)
-		# Load workflow operation sequence
-		wfSequence = self.__config.getWorkflowSequence()
-		self.__logger.debug("WORKFLOW SEQUENCE loaded: " + str(wfSequence))
-		# Static composition check
-		# Subscribe every operation to its providers
-		provisions = {}
-		for op in wfSequence:
-			self.__logger.debug("Processing workflow sequence operation '" + op + "'")
-			if len(operations[op]['runner'].requires()) > 0:
-				self.__logger.debug("Operation '" + op + "' requires: " + str(operations[op]['runner'].requires()))
-				# Sign the runner up for those previous operations in the workflow providing what it needs
-				for requiredItem in operations[op]['runner'].requires():
-					if requiredItem in provisions:
-						# Even if we are using a list for providers of a particular item, I always use the first one
-						# on the list, this can be changed later in the future to be more elaborated, but keep in
-						# mind that this workflow engine was designed upon the assumption of one single provider
-						# per required item
-						self.__logger.debug("Making runner " + operations[op]['runner'].getIdName() \
-							+ " observe for requirement '" + requiredItem + "' on provider '" \
-							+ provisions[requiredItem][0].getIdName() + "'")						
-						operations[op]['runner'].observe(provisions[requiredItem][0], requiredItem)
-					else:
-						msg = "Workflow Processing ERROR - operation " + op + " run by '" \
-							+ operations[op]['runner'].getIdName() + "' requires '" + requiredItem \
-							+ "' but it is not provided by any of the antecesors of the workflow"
-						self.__reporter.error(msg)
-						raise WorkflowRunnerException(msg)
-			self.__logger.debug("Runner " + operations[op]['runner'].getIdName() + " provides: " \
-				+ str(operations[op]['runner'].provides()))
-			for provisionKey in operations[op]['runner'].provides():
-				self.__logger.debug("Registering that operation '" + op + "' provides " + provisionKey)
-				if provisionKey not in provisions:
-					# I should not need a list but something tells me that it's better this way
-					provisions[provisionKey] = []
-				# Add the reference of the runner
-				provisions[provisionKey].append(operations[op]['runner'])
-		# Run workflows in parallel
-		# TODO - Change this to poll threads in case a deadlock occurs, so we can kill other threads
-		runners = []
-		for op in wfSequence:
-			self.__logger.debug("Launching thread for operation '" + op + "' being run by runner " \
-				+ operations[op]['runner'].getIdName())
-			thread = threading.Thread(target=operations[op]['runner'].execute)
-			thread.start()
-			runners.append(thread)
-		self.__logger.debug("Waiting for operations to finish")
-		for runner in runners:
-			# TODO - Use non-blocking wait for the threads, in case any of them fails, and recover result object
-			runner.join()
-		self.__logger.debug("All runners have finished")
-		self.__reporter.info("End of workflow execution " + self.__config.getWorkflowId())
+		try:
+			operations = {}
+			for op in self.__config.getOperations():
+				try:
+					self.__logger.debug("Processing Factory for operation '" + op + "'")
+					operations[op] = {}
+					operations[op]['factory'] = \
+						configManager.getManager().getWorkflowFactoryInstance(self.__config.getFactoryNameForOperation(op))
+					self.__logger.debug("Instantiating runner with config file " + self.__config.getConfigFileForOperation(op))
+					operations[op]['runner'] = operations[op]['factory'].createWorkflowRunner(self.__config.getConfigFileForOperation(op))
+				except Exception as e:
+					msg = "An error occurred while trying to instantiate factories and runners for workflow " \
+						+ self.__config.getWorkflowId() + "\nERROR: " + str(e)
+					self.__reporter.error(msg)
+					raise WorkflowRunnerException(msg)
+			# Load workflow operation sequence
+			wfSequence = self.__config.getWorkflowSequence()
+			self.__logger.debug("WORKFLOW SEQUENCE loaded: " + str(wfSequence))
+			# Static composition check
+			# Subscribe every operation to its providers
+			provisions = {}
+			for op in wfSequence:
+				self.__logger.debug("Processing workflow sequence operation '" + op + "'")
+				if len(operations[op]['runner'].requires()) > 0:
+					self.__logger.debug("Operation '" + op + "' requires: " + str(operations[op]['runner'].requires()))
+					# Sign the runner up for those previous operations in the workflow providing what it needs
+					for requiredItem in operations[op]['runner'].requires():
+						if requiredItem in provisions:
+							# Even if we are using a list for providers of a particular item, I always use the first one
+							# on the list, this can be changed later in the future to be more elaborated, but keep in
+							# mind that this workflow engine was designed upon the assumption of one single provider
+							# per required item
+							self.__logger.debug("Making runner " + operations[op]['runner'].getIdName() \
+								+ " observe for requirement '" + requiredItem + "' on provider '" \
+								+ provisions[requiredItem][0].getIdName() + "'")						
+							operations[op]['runner'].observe(provisions[requiredItem][0], requiredItem)
+						else:
+							msg = "Workflow Processing ERROR - operation " + op + " run by '" \
+								+ operations[op]['runner'].getIdName() + "' requires '" + requiredItem \
+								+ "' but it is not provided by any of the antecesors of the workflow"
+							self.__reporter.error(msg)
+							raise WorkflowRunnerException(msg)
+				self.__logger.debug("Runner " + operations[op]['runner'].getIdName() + " provides: " \
+					+ str(operations[op]['runner'].provides()))
+				for provisionKey in operations[op]['runner'].provides():
+					self.__logger.debug("Registering that operation '" + op + "' provides " + provisionKey)
+					if provisionKey not in provisions:
+						# I should not need a list but something tells me that it's better this way
+						provisions[provisionKey] = []
+					# Add the reference of the runner
+					provisions[provisionKey].append(operations[op]['runner'])
+			# Run workflows in parallel
+			# TODO - Change this to poll threads in case a deadlock occurs, so we can kill other threads
+			runners = []
+			for op in wfSequence:
+				self.__logger.debug("Launching thread for operation '" + op + "' being run by runner " \
+					+ operations[op]['runner'].getIdName())
+				thread = threading.Thread(target=operations[op]['runner'].execute)
+				thread.start()
+				runners.append((operations[op]['runner'], thread))
+			self.__logger.debug("Waiting for operations to finish")
+			cancelWorkflow = False
+			while len(runners) > 0:
+				runnersKept = []
+				errMsg = ""
+				if cancelWorkflow:
+					# Up to this point I haven't found a way to stop the running threads, so I will just raise an
+					# exception that will cause this workflow to finish reporting the error
+					msg = "A step in the workflow has failed, " + str(len(runners)) + " runners were still working " \
+						+ "by the time the failure was detected, some of them may have finished their task, an" \
+						+ " exception is being raised to report the error"
+					self.__logger.error(msg)
+					raise WorkflowRunnerException(msg)
+				else:
+					for (runner, runnerThread) in runners:
+						# TODO - Use non-blocking wait for the threads, in case any of them fails, and recover result object
+						# runnerThread.join()
+						if runnerThread.is_alive():
+							self.__logger.debug("Runner '" + runner.getIdName() + "' is still running, we keep it for later")
+							runnersKept.append((runner, runnerThread))
+						else:
+							self.__logger.debug("Checking runner '" + runner.getIdName() + "' result")
+							if runner.isResultSuccess():
+								self.__logger.debug("Runner '" + runner.getIdName() + "' was successful: " + runner.getResultMessage())
+							else:
+								msg = "Runner '" + runner.getIdName() + "' FAILED: " + runner.getResultMessage()
+								errMsg += msg + "\n"
+								self.__logger.error(msg)
+								cancelWorkflow = True
+				runners = runnersKept
+			self.__logger.debug("All runners have finished")
+		except Exception as e:
+			# We make sure any exception is captured to finish gently and report the error or success situation
+			msg = "An error occurred while executing workflow ID '" + self.__config.getWorkflowId() + "', ERROR message:\n" + str(e)
+			self.__reporter.error(msg)
+			self.setError(msg)
+		finally:
+			self.__reporter.info("END   --- workflow ID '" + self.__config.getWorkflowId() + "'")
 # END of Abstract Factory Product ###################################################################################
 
 # END OF SCRIPT #####################################################################################################

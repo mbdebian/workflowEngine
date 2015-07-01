@@ -8,9 +8,13 @@
 		"operationA": {
 			"factory": "testRunnerA",
 			"configFileName": "testRunnerA_testworkflow.conf"
+		},
+		"operationError": {
+			"factory": "errorRunner",
+			"configFileName": "errorRunner.conf"
 		}
 	},
-	"workflow": ["operationB", "operationA"],
+	"workflow": ["operationB", "operationError", "operationA"],
 	"provides": ["TestWorkflow"],
 	"requires": [],
 	"provisionKeys": ["opa", "opb"]

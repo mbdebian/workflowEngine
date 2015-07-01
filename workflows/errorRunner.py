@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
 #####################################################################################################################
-#								TEMPLATE for creating a WorkflowRunner Factory										#
+#								ERROR Runner - This runner may end up in error										#
 #####################################################################################################################
 #																Author: Manuel Bernal Llinares <mbdebian@gmail.com>	#
 #####################################################################################################################
-""" This is a template that provides the scafolding for creating your own WorkflowRunner Factory
+""" This factory produces a kind of runner that will finish with error or success state depending on what the config
+file says
 """
 
 # Running as part of the Workflow Engine ############################################################################
@@ -48,9 +49,12 @@ class ConfManager(WfConfManager):
 	def __init__(self, configFileName, director):
 		WfConfManager.__init__(self, configFileName, director)
 
-	def getParticularProperty(self):
-		key = "propertyKey"
-		return self._getValueForKey(key)
+	def isError(self):
+		key = "error"
+		if self._getValueForKey(key) == "True":
+			return True
+		else:
+			return False
 
 # END of Support the Abstract Factory Product #######################################################################
 
@@ -93,7 +97,10 @@ class MyWorkflowRunner(WorkflowRunner):
 		self.__reporter.info("BEGIN --- workflow ID '" + self.__config.getWorkflowId() + "'")
 		try:
 			# TODO Place here the execution body of your runner
-			pass
+			if self.__config.isError():
+				raise MyCustomException("ERROR - produced as requested by the config file")
+			else:
+				self.setSuccess("SUCCESS - as requested by the config file")
 		except Exception as e:
 			msg = "An error occurred while executing workflow ID '" + self.__config.getWorkflowId() + "', ERROR message:\n" + str(e)
 			self.__reporter.error(msg)

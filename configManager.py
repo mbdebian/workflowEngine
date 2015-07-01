@@ -303,6 +303,7 @@ class TestConfigManager:
 		consoleHandler = logging.StreamHandler()
 		consoleHandler.setLevel(logging.DEBUG)
 		consoleHandler.setFormatter(logging.Formatter(_loggerFormatters['DEBUG']))
+		self.__logHandlers.append(consoleHandler)
 		self.__logger.addHandler(consoleHandler)
 		self.__logger.debug("Logging system initialized")
 		# TODO Check config file for formatting options
@@ -315,11 +316,15 @@ class TestConfigManager:
 		warnerrHandler.setLevel(logging.WARN)
 		normalHandler.setFormatter(logging.Formatter(self.__reportFormatters['normal']))
 		warnerrHandler.setFormatter(logging.Formatter(self.__reportFormatters['warnerr']))
+		consoleHandler = logging.StreamHandler()
+		consoleHandler.setLevel(logging.INFO)
+		consoleHandler.setFormatter(logging.Formatter(self.__reportFormatters['warnerr']))
 		self.__reporter = logging.getLogger(configObject['jobId'] + '-main')
 		self.__reporter.addHandler(normalHandler)
 		self.__reporter.addHandler(warnerrHandler)
+		self.__reporter.addHandler(consoleHandler)
 		self.__reporter.setLevel(logging.INFO)
-		self.__reportHandlers = [normalHandler, warnerrHandler]
+		self.__reportHandlers = [normalHandler, warnerrHandler, consoleHandler]
 		self.__resourcesFolder = os.path.abspath(_resourcesFolder)
 
 	def getReporter(self):

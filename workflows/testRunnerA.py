@@ -102,11 +102,19 @@ class TestRunnerA(WorkflowRunner):
 		return self.__runnerIdName
 
 	def _execute(self):
-		self.waitForRequirements()
-		self.__logger.debug("Executing workflow -- " + self.__config.getWorkflowId() + " --")
-		self.__logger.debug("Body of workflow execution")
-		self.__logger.debug("End of workflow execution " + self.__config.getWorkflowId())
-		self.__reporter.info("Workflow executed successfully! " + self.__config.getWorkflowId())
+		self.__reporter.info("BEGIN --- workflow ID '" + self.__config.getWorkflowId() + "'")
+		try:
+			# TODO Place here the execution body of your runner
+			self.__logger.debug("Body of workflow execution")
+		except Exception as e:
+			msg = "An error occurred while executing workflow ID '" + self.__config.getWorkflowId() + "', ERROR message:\n" + str(e)
+			self.__reporter.error(msg)
+			self.setError(msg)
+			# We no longer raise an exception here, we use a result object to communicate the end of the process to
+			# the calling object
+			#raise MyCustomException(msg)
+		finally:
+			self.__reporter.info("END   --- workflow ID '" + self.__config.getWorkflowId() + "'")
 # END of Abstract Factory Product ###################################################################################
 
 # END OF SCRIPT #####################################################################################################
