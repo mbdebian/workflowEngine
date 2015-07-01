@@ -1,0 +1,7 @@
+{
+	"workflowId": "Unit_tester-platform_toolbox",
+	"description": "This workflow implements a runner that will execute the unit tests for the given module in the workflows folder",
+	"moduleName": "platformToolbox",
+	"provides": [],
+	"requires": []
+}

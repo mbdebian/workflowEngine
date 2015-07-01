@@ -1,5 +1,5 @@
 {
-	"jobId": "unit_test-testConfigManager",
+	"jobId": "UnitTest",
 	"mainWorkflow": {
 		"factory": "workflowEngine",
 		"config": "dummy.conf"
