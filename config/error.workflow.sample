@@ -1,0 +1,14 @@
+{
+	"workflowId": "ErrorWorkflow",
+	"description": "This workflow definition describes what to do in case of FAILED execution of the main workflow",
+	"operations": {
+		"mailReport": {
+			"factory": "mailReporter",
+			"configFileName": "errorReporter.conf.sample"
+		}
+	},
+	"workflow": ["mailReport"],
+	"provides": ["errorWorkflow"],
+	"requires": [],
+	"provisionKeys": ["errorReporter"]
+}

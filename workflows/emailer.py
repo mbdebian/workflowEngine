@@ -105,6 +105,9 @@ class Emailer:
 			except Exception as e:
 				self.__logger.warning("ERROR cleaning temporary file '" + tmpFilePath + "'")
 
+	def sendEmailContentFromFile(self, receiver, subject, contentFilePath):
+		self._sendEmail(receiver, subject, contentFilePath)
+
 # UNIT TEST - #######################################################################################################
 def unitTest(logger):
 	logger.info("--- " * 4 + "Executing unit tests for " + os.path.basename(__file__) + " ---" * 4)

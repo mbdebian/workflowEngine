@@ -1,0 +1,10 @@
+{
+	"workflowId": "successReporter",
+	"description": "This configuration tells the mail Reporter Runner to send only report files for record keeping about the process",
+	"attachLogFiles": "False",
+	"attachReportFiles": "True",
+	"mailRecipient": "",
+	"mailServerConfigFile": "emailer.conf.sample",
+	"provides": ["successReporter"],
+	"requires": []
+}
