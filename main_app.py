@@ -76,7 +76,13 @@ def main():
 			finally:
 				if not error:
 					# Execute success workflow
-					pass
+					try:
+						swf = config.getSuccessWorkflowInstance()
+						swf.execute()
+					except Exception as e:
+						config.getReporter().error("An exception occurred while running the success workflow " \
+							+ "for session '" + config.getSessionId() + "', ERROR message: " + str(e))
+						error = True
 				else:
 					# Execute error workflow
 					pass
