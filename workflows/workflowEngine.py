@@ -50,6 +50,7 @@ else:
 
 # Modules from the system ###########################################################################################
 import os
+import time
 import json
 import threading
 # END of Modules from the system ####################################################################################
@@ -238,8 +239,11 @@ class WorkflowEngine(WorkflowRunner):
 								msg = "Runner '" + runner.getIdName() + "' FAILED: " + runner.getResultMessage()
 								errMsg += msg + "\n"
 								self.__logger.error(msg)
+								self.setError(msg)
 								cancelWorkflow = True
 				runners = runnersKept
+				# Let's wait for a while
+				time.sleep(1)
 			self.__logger.debug("All runners have finished")
 		except Exception as e:
 			# We make sure any exception is captured to finish gently and report the error or success situation

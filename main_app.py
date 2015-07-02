@@ -7,6 +7,7 @@
 #####################################################################################################################
 
 # Import modules from system
+import os
 import sys
 import logging
 import argparse
@@ -65,14 +66,14 @@ def main():
 			except Exception as e:
 				config.getReporter().error("An exception occurred while running session '" \
 					+ config.getSessionId() + "', ERROR message: " + str(e))
-				error = True
+				error = True or error
 			else:
 				if mainWorkflow.isResultSuccess():
 					config.getReporter().info("Successful session: '" + config.getSessionId() + "'")
 				else:
 					config.getReporter().error("Error running session '" + config.getSessionId() + "', ERROR: " \
 						+ mainWorkflow.getResultMessage())
-					error = True
+					error = True or error
 			finally:
 				if not error:
 					# Execute success workflow
@@ -82,20 +83,27 @@ def main():
 					except Exception as e:
 						config.getReporter().error("An exception occurred while running the success workflow " \
 							+ "for session '" + config.getSessionId() + "', ERROR message: " + str(e))
-						error = True
+						error = True or error
+					else:
+						error = not swf.isResultSuccess() or error
 				else:
 					# Execute error workflow
 					pass
 	except Exception as e:
 		config.getReporter().error("ERROR!!! " + str(e))
 		print(str(e))
-		error = True
+		error = True or error
 	finally:
 		config.getReporter().info("END of session " + config.getSessionId())
 		logging.shutdown()
 		if error:
 			# TODO Flag the folder as ERROR, so another process knows there was a problem
-			sys.exit(1)
+			errorFlagFile = os.path.join(configManager.getManager().getWorkingDir(), "workflow_result_flag.error")
+			try:
+				with open(errorFlagFile, "w") as eflag:
+					eflag.write("This workflow DID NOT COMPLETE its execution, please, see logs for more details")
+			finally:
+				sys.exit(1)
 
 
 if __name__ == "__main__":
