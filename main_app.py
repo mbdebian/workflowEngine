@@ -80,6 +80,9 @@ def main():
 					try:
 						swf = config.getSuccessWorkflowInstance()
 						swf.execute()
+					except ConfigException as c:
+						config.getReporter().warning("There is no success workflow defined for session '" \
+							+ config.getSessionId() + "'")
 					except Exception as e:
 						config.getReporter().error("An exception occurred while running the success workflow " \
 							+ "for session '" + config.getSessionId() + "', ERROR message: " + str(e))
@@ -88,7 +91,18 @@ def main():
 						error = not swf.isResultSuccess() or error
 				else:
 					# Execute error workflow
-					pass
+					try:
+						ewf = config.getErrorWorkflowInstance()
+						ewf.execute()
+					except ConfigException as c:
+						config.getReporter().warning("There is no error workflow defined for session '" \
+							+ config.getSessionId() + "'")
+					except Exception as e:
+						config.getReporter().error("An exception occurred while running the error workflow " \
+							+ "for session '" + config.getSessionId() + "', ERROR message: " + str(e))
+						error = True or error
+					else:
+						error = not ewf.isResultSuccess() or error
 	except Exception as e:
 		config.getReporter().error("ERROR!!! " + str(e))
 		print(str(e))
