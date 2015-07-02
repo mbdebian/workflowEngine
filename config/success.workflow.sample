@@ -1,0 +1,14 @@
+{
+	"workflowId": "SuccessWorkflow",
+	"description": "This workflow definition describes what to do in case of successful execution of the main workflow",
+	"operations": {
+		"mailReport": {
+			"factory": "mailReporter",
+			"configFileName": "successReporter.conf.sample"
+		}
+	},
+	"workflow": ["mailReport"],
+	"provides": ["successWorkflow"],
+	"requires": [],
+	"provisionKeys": ["successReporter"]
+}
