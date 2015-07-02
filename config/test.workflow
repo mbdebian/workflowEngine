@@ -11,7 +11,7 @@
 		},
 		"operationError": {
 			"factory": "errorRunner",
-			"configFileName": "errorRunner.conf"
+			"configFileName": "errorRunner.conf.sample"
 		}
 	},
 	"workflow": ["operationB", "operationError", "operationA"],

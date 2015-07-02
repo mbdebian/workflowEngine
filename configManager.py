@@ -221,16 +221,29 @@ class ConfigurationManager:
 		self.__logger.debug("Returning instance of factory " + moduleName)
 		return instance
 
-	def getMainWorkflowInstance(self):
-		if "mainWorkflow" in self.__configObject:
+	def _getWorkflow(self, wfName):
+		if wfName in self.__configObject:
 			# Get Factory instance
-			wfFactory = self.getWorkflowFactoryInstance(self.__configObject['mainWorkflow']['factory'])
-			if "config" in self.__configObject['mainWorkflow']:
-				return wfFactory.createWorkflowRunner(self.__configObject['mainWorkflow']['config'])
+			wfFactory = self.getWorkflowFactoryInstance(self.__configObject[wfName]['factory'])
+			if "config" in self.__configObject[wfName]:
+				return wfFactory.createWorkflowRunner(self.__configObject[wfName]['config'])
 			else:
-				msg = "There is no config file for the main workflow"
+				msg = "There is no config file for the workflow: '" + wfName + "'"
 				self.__reporter.error(msg)
 				raise ConfigException(msg)
+		else:
+			msg = "There is no '" + wfName + "' workflow in the config file"
+			self.__reporter.warning(msg)
+			raise ConfigException(msg)
+
+	def getMainWorkflowInstance(self):
+		return self._getWorkflow("mainWorkflow")
+
+	def getSuccessWorkflowInstance(self):
+		return self._getWorkflow("successWorkflow")
+
+	def getErrorWorkflowInstance(self):
+		return self._getWorkflow("errorWorkflow")
 
 	def getWorkingDir(self):
 		return self.__sessionWorkingDir

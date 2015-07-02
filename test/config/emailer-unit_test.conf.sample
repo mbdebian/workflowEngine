@@ -1,0 +1,6 @@
+{
+	"sshServer": "cw-vm-d0b3.sa.nectar.org.au",
+	"sshUser": "ubuntu",
+	"sendingAttempts": "3",
+	"sendingTimeout": "60"
+}

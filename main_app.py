@@ -73,13 +73,22 @@ def main():
 					config.getReporter().error("Error running session '" + config.getSessionId() + "', ERROR: " \
 						+ mainWorkflow.getResultMessage())
 					error = True
+			finally:
+				if not error:
+					# Execute success workflow
+					pass
+				else:
+					# Execute error workflow
+					pass
 	except Exception as e:
 		config.getReporter().error("ERROR!!! " + str(e))
 		print(str(e))
+		error = True
 	finally:
 		config.getReporter().info("END of session " + config.getSessionId())
 		logging.shutdown()
 		if error:
+			# TODO Flag the folder as ERROR, so another process knows there was a problem
 			sys.exit(1)
 
 
